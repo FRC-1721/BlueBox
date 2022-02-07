@@ -7,6 +7,11 @@ name = "pypi"
 opencv-python = "*"
 pyudev = "*"
 coloredlogs = "*"
+vidgear = "*"
+uvicorn = "*"
+starlette = "*"
+simplejpeg = "*"
+jinja2 = "*"
 
 [dev-packages]
 black = "*"

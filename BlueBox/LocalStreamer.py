@@ -1,8 +1,9 @@
-import cv2
-import time
-import logging
+import uvicorn
+from vidgear.gears.asyncio import WebGear
+from vidgear.gears import CamGear
+from vidgear.gears import VideoGear
+
 import threading
-import subprocess as sp
 
 
 class LocalStreamer(threading.Thread):
@@ -19,43 +20,21 @@ class LocalStreamer(threading.Thread):
         # This camera's cam ID
         self.camID = camID
 
-        # Setup a video capture
-        self.vidCap = cv2.VideoCapture(self.camID)
+        # Setup a camgear, to handle capturing this cam
+        # self.Camera = CamGear(source=0, logging=True).start()
 
-        codec = cv2.VideoWriter_fourcc(*"MJPG")
-        fps = 29.9  # 29.9
-        resolution = (640, 480)
-        self.vidWriter = cv2.VideoWriter(
-            f"videos/camera{self.camID}.avi", codec, fps, resolution
-        )
+        self.options = {
+            "frame_size_reduction": 40,
+            "jpeg_compression_quality": 80,
+            "jpeg_compression_fastdct": True,
+            "jpeg_compression_fastupsample": False,
+        }
 
-        command = ["ffmpeg", "-i", "-", "-f", "flv", "localhost:9000"]
-        self.ffmpeg = sp.Popen(command, stdin=sp.PIPE, shell=False)
+        self.web = WebGear(source=0, logging=True, **self.options)
 
     def run(self):
-        logging.info(f"Thread for camera {self.camID} has started.")
-
-        while True:
-            logging.debug(
-                f"Camera number {self.camID} Attempting to capture a new frame"
-            )
-            ret, frame = self.vidCap.read()
-
-            if not ret:
-                logging.error("Could not capture last frame.")
-
-            else:
-                logging.debug("Frame was valid, writing to file.")
-                self.vidWriter.write(frame)
-                logging.info("Wrote frame.")
-
-                self.ffmpeg.stdin.write(frame.tobytes())
-
-                cv2.imshow("My cam video", frame)
-
-            time.sleep(0.01)
+        uvicorn.run(self.web(), host="localhost", port=8000)
 
     def terminate(self):
-        cv2.destroyAllWindows()
-        self.vidCap.release()
-        self.vidWriter.release()
+        self.web.shutdown()
+        self.Camera.stop()
