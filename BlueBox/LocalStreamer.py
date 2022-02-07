@@ -2,14 +2,15 @@ import cv2
 import time
 import logging
 import threading
+import subprocess as sp
 
 
 class LocalStreamer(threading.Thread):
     """
-    Handles offloading the job of capturing frames
-    to a separate thread, construct one for
-    each camera, and make possible to support multiple
-    camera stream types.
+    Each local camera should have a LocalStreamer
+    dedicated to it. This thread should handle reconnecting
+    if the camera goes dead, as well as transcoding, and serving
+    the camera via mjpeg.
     """
 
     def __init__(self, camID):
@@ -21,10 +22,15 @@ class LocalStreamer(threading.Thread):
         # Setup a video capture
         self.vidCap = cv2.VideoCapture(self.camID)
 
-        self.vidCodec = cv2.VideoWriter_fourcc(*"XVID")
+        codec = cv2.VideoWriter_fourcc(*"MJPG")
+        fps = 29.9  # 29.9
+        resolution = (640, 480)
         self.vidWriter = cv2.VideoWriter(
-            f"videos/camera{self.camID}.mp4", self.vidCodec, 20.0, (640, 480)
+            f"videos/camera{self.camID}.avi", codec, fps, resolution
         )
+
+        command = ["ffmpeg", "-i", "-", "-f", "flv", "localhost:9000"]
+        self.ffmpeg = sp.Popen(command, stdin=sp.PIPE, shell=False)
 
     def run(self):
         logging.info(f"Thread for camera {self.camID} has started.")
@@ -42,6 +48,8 @@ class LocalStreamer(threading.Thread):
                 logging.debug("Frame was valid, writing to file.")
                 self.vidWriter.write(frame)
                 logging.info("Wrote frame.")
+
+                self.ffmpeg.stdin.write(frame.tobytes())
 
                 cv2.imshow("My cam video", frame)
 

@@ -21,7 +21,6 @@ class BlueBox:
 
         # Each camera should have its own threaded handler.
         self.CameraThread0 = LocalStreamer(0)
-        self.CameraThread0.daemon = True
         # self.thread2 = CameraThread(4)
 
     def run(self):
@@ -33,4 +32,5 @@ class BlueBox:
                 logging.debug("Mainloop is waiting...")
                 time.sleep(1)
         except KeyboardInterrupt:
+            self.CameraThread0.join()
             quit()
