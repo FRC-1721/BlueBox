@@ -28,6 +28,7 @@ class LocalStreamer(threading.Thread):
             "jpeg_compression_quality": 80,
             "jpeg_compression_fastdct": True,
             "jpeg_compression_fastupsample": False,
+            "custom_data_location": "BlueBox/www/",
         }
 
         self.web = WebGear(source=0, logging=True, **self.options)
