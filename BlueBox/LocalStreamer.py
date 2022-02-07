@@ -27,22 +27,27 @@ class LocalStreamer(threading.Thread):
         )
 
     def run(self):
-        logging.info("Starting.")
+        logging.info(f"Thread for camera {self.camID} has started.")
 
         while True:
-            logging.debug(f"Camera number {self.camID} capture a new frame")
+            logging.debug(
+                f"Camera number {self.camID} Attempting to capture a new frame"
+            )
             ret, frame = self.vidCap.read()
 
             if not ret:
                 logging.error("Could not capture last frame.")
 
             else:
-                # Write the frame we just grabbed
+                logging.debug("Frame was valid, writing to file.")
                 self.vidWriter.write(frame)
                 logging.info("Wrote frame.")
+
+                cv2.imshow("My cam video", frame)
 
             time.sleep(0.01)
 
     def terminate(self):
+        cv2.destroyAllWindows()
         self.vidCap.release()
         self.vidWriter.release()
