@@ -1,22 +1,36 @@
-import cv2
+# FRC 1721
+# 2022
 
-## Capture video from webcam
-vid_capture = cv2.VideoCapture(2)
-vid_cod = cv2.VideoWriter_fourcc(*"XVID")
-output = cv2.VideoWriter("videos/cam_video.mp4", vid_cod, 20.0, (640, 480))
+import time
+import coloredlogs, logging
 
-while True:
-    # Capture each frame of webcam video
-    ret, frame = vid_capture.read()
-    cv2.imshow("My cam video", frame)
-    output.write(frame)
-    # Close and break the loop after pressing "x" key
-    if cv2.waitKey(1) & 0xFF == ord("x"):
-        break
+from LocalStreamer import LocalStreamer
 
-# close the already opened camera
-vid_capture.release()
-# close the already opened file
-output.release()
-# close the window and de-allocate any associated memory usage
-cv2.destroyAllWindows()
+
+class BlueBox:
+    def __init__(self):
+        """
+        Construct a BlueBox instance
+        """
+
+        # Get logger
+        self.logger = logging.getLogger(__name__)
+
+        # Setup colored logs
+        coloredlogs.install(level="DEBUG")
+
+        # Each camera should have its own threaded handler.
+        self.CameraThread0 = LocalStreamer(0)
+        # self.thread2 = CameraThread(4)
+
+    def run(self):
+        self.CameraThread0.start()
+        # self.thread2.start()
+
+        try:
+            while True:
+                logging.debug("Mainloop is waiting...")
+                time.sleep(1)
+        except KeyboardInterrupt:
+            self.CameraThread0.join()
+            quit()
