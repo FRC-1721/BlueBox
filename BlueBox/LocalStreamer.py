@@ -14,11 +14,14 @@ class LocalStreamer(threading.Thread):
     the camera via mjpeg.
     """
 
-    def __init__(self, camID):
+    def __init__(self, camID, BlueBoxTable):
         threading.Thread.__init__(self)
 
         # This camera's cam ID
         self.camID = camID
+
+        # The passed instance of nt from main thread
+        self.BlueBoxTable = BlueBoxTable
 
         # Setup a camgear, to handle capturing this cam
         # self.Camera = CamGear(source=0, logging=True).start()
@@ -32,6 +35,8 @@ class LocalStreamer(threading.Thread):
         }
 
         self.web = WebGear(source=0, logging=True, **self.options)
+
+        self.BlueBoxTable.putNumber(f"CamStream{camID}", 1)
 
     def run(self):
         uvicorn.run(self.web(), host="localhost", port=8000)
