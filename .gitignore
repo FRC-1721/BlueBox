@@ -1,3 +1,7 @@
 # Dev artifacts
 .vscode
 videos
+__pycache__
+
+# Artifacts on bot
+bb_venv/
