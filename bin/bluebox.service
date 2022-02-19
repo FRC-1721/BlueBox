@@ -1,0 +1,8 @@
+[Unit]
+Description=Bluebox is a data recorder for frc robots, made by 1721
+
+[Service]
+ExecStart=/opt/BlueBox/bin/entrypoint.sh
+
+[Install]
+WantedBy=multi-user.target
