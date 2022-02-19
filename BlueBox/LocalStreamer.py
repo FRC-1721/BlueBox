@@ -41,6 +41,7 @@ class LocalStreamer(threading.Thread):
             "-crf": 22,
             "-map": 0,
             "-segment_time": 9,
+            "-r": 60,
             "-g": 9,
             "-sc_threshold": 0,
             "-force_key_frames": "expr:gte(t,n_forced*9)",
@@ -60,17 +61,16 @@ class LocalStreamer(threading.Thread):
 
         self.BlueBoxTable.putNumber(f"CamStream{camID}", 1)
 
-    async def frame_producer(self):
-
-        # Setup video stream depending
-        stream = CamGear(
+        self.cameraStream = CamGear(
             source=0,
             logging=True,
         ).start()
 
+    async def frame_producer(self):
+
         while True:
             # Read frames
-            frame = stream.read()
+            frame = self.cameraStream.read()
 
             # Break if bad or no frame
             if frame is None:
