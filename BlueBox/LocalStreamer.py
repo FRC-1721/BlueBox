@@ -39,7 +39,7 @@ class LocalStreamer(threading.Thread):
         self.BlueBoxTable.putNumber(f"CamStream{camID}", 1)
 
     def run(self):
-        uvicorn.run(self.web(), host="localhost", port=8000)
+        uvicorn.run(self.web(), host="0.0.0.0", port=8000)
 
     def terminate(self):
         self.web.shutdown()
