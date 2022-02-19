@@ -1,0 +1,11 @@
+streams:
+  rearfisheye:
+    name: RearFisheye
+    type: local
+    id: 0
+
+    # Time that sections are broken up into
+    segment_time: 30
+
+# Where to save everything
+recording_path: /var/bluebox/

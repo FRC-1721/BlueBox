@@ -19,11 +19,11 @@ class LocalStreamer(threading.Thread):
     the camera via mjpeg.
     """
 
-    def __init__(self, camID, BlueBoxTable):
+    def __init__(self, data, BlueBoxTable):
         threading.Thread.__init__(self)
 
         # This camera's cam ID
-        self.camID = camID
+        self.camID = int(data["id"])
 
         # The passed instance of nt from main thread
         self.BlueBoxTable = BlueBoxTable
@@ -40,7 +40,7 @@ class LocalStreamer(threading.Thread):
             "-c:v": "libx264",
             "-crf": 22,
             "-map": 0,
-            "-segment_time": 9,
+            "-segment_time": data["segment_time"],
             "-r": 60,
             "-g": 9,
             "-sc_threshold": 0,
@@ -54,12 +54,12 @@ class LocalStreamer(threading.Thread):
         self.web.config["generator"] = self.frame_producer
 
         self.writer = WriteGear(
-            output_filename="/opt/BlueBox/output%03d.mp4",
+            output_filename="/var/bluebox/output%03d.mp4",
             logging=True,
             **writeGearOptions,
         )
 
-        self.BlueBoxTable.putNumber(f"CamStream{camID}", 1)
+        self.BlueBoxTable.putNumber(data["name"], 1)
 
         self.cameraStream = CamGear(
             source=0,

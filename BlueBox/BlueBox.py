@@ -2,7 +2,9 @@
 # 2022
 
 import time
+import yaml
 import coloredlogs, logging
+
 from networktables import NetworkTables
 
 from LocalStreamer import LocalStreamer
@@ -17,6 +19,8 @@ class BlueBox:
         # Get logger
         self.logger = logging.getLogger(__name__)
 
+        self.const = self.getConstants()
+
         # Setup colored logs
         coloredlogs.install(level="DEBUG")
 
@@ -26,21 +30,40 @@ class BlueBox:
         self.BlueBoxTable = sd.getSubTable("BlueBox")
 
         # Each camera should have its own threaded handler.
-        self.CameraThread0 = LocalStreamer(0, self.BlueBoxTable)
-        # self.thread2 = CameraThread(4)
+        # This is messy, maybe look at python multiprocessing?
+        self.RearFisheyeThread = LocalStreamer(
+            self.const["streams"]["rearfisheye"],
+            self.BlueBoxTable,
+        )
 
     def run(self):
-        self.CameraThread0.start()
+        self.RearFisheyeThread.start()
         # self.thread2.start()
 
         try:
             while True:
-                logging.debug("Mainloop is waiting...")
+                # logging.debug("Mainloop is waiting...")
 
                 # self.BlueBoxTable.putNumber("Epoch", int(time.time()))
                 otherNumber = self.BlueBoxTable.getNumber("otherNumber", 0)
 
                 time.sleep(1)
         except KeyboardInterrupt:
-            self.CameraThread0.join()
+            self.RearFisheyeThread.join()
             quit()
+
+    def getConstants(self):
+        constants = {}
+
+        try:
+            # Try opening requested .yaml
+            with open("config.yaml", "r") as yamlFile:
+                # Use yaml.safe_load to load the yaml into a dict
+                constants = yaml.safe_load(yamlFile)
+        except FileNotFoundError as e:
+            # If the file is not found, report it!
+            logging.error("Config not found!")
+            raise e
+
+        # When all is done, return the important bits!
+        return constants
