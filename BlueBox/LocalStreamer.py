@@ -41,7 +41,7 @@ class LocalStreamer(threading.Thread):
             "-crf": 22,
             "-map": 0,
             "-segment_time": data["segment_time"],
-            "-r": 60,
+            "-r": 29.9,
             "-g": 9,
             "-sc_threshold": 0,
             "-force_key_frames": "expr:gte(t,n_forced*9)",
@@ -93,7 +93,7 @@ class LocalStreamer(threading.Thread):
         stream.stop()
 
     def run(self):
-        uvicorn.run(self.web(), host="0.0.0.0", port=8000)
+        uvicorn.run(self.web(), host="0.0.0.0", port=5801)
 
     def terminate(self):
         self.writer.close()
