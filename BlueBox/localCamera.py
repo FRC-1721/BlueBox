@@ -1,17 +1,20 @@
+import imp
+import cv2
+import queue
+import asyncio
 import uvicorn
-from vidgear.gears.asyncio import WebGear
-from vidgear.gears import CamGear
-from vidgear.gears import VideoGear
-
-# import necessary libs
-import uvicorn, asyncio, cv2
-from vidgear.gears import WriteGear
-from vidgear.gears.asyncio.helper import reducer
-
 import threading
 
+from vidgear.gears import WriteGear
+from threading import Thread
+from vidgear.gears.asyncio.helper import reducer
+from vidgear.gears.asyncio import WebGear
+from vidgear.gears import CamGear
 
-class LocalStreamer(threading.Thread):
+from iterators.RecordingFrameIterator import RecordingFrameIterator
+
+
+class LocalCamera(threading.Thread):
     """
     Each local camera should have a LocalStreamer
     dedicated to it. This thread should handle reconnecting
@@ -36,50 +39,28 @@ class LocalStreamer(threading.Thread):
             "custom_data_location": "BlueBox/www/",
         }
 
-        writeGearOptions = {
-            "-c:v": "libx264",
-            "-crf": 22,
-            "-map": 0,
-            "-segment_time": data["segment_time"],
-            "-r": 60,
-            "-g": 9,
-            "-sc_threshold": 0,
-            "-force_key_frames": "expr:gte(t,n_forced*9)",
-            "-clones": ["-f", "segment"],
-        }
-
         # Setup blank WebGear
         self.web = WebGear(logging=True, **self.webGearOptions)
 
         self.web.config["generator"] = self.frame_producer
 
-        self.writer = WriteGear(
-            output_filename="/var/bluebox/output%03d.mp4",
-            logging=True,
-            **writeGearOptions,
-        )
-
         self.BlueBoxTable.putNumber(data["name"], 1)
 
-        self.cameraStream = CamGear(
-            source=0,
-            logging=True,
-        ).start()
-
     async def frame_producer(self):
-
+        # !!! define your own video source and output video filename here!!!
+        # open any valid video stream(for e.g `myvideo.mp4` file)
+        self.stream = RecordingFrameIterator(name="myoutput.mp4").start()
+        # loop over frames
         while True:
-            # Read frames
-            frame = self.cameraStream.read()
+            # read frames from stream
+            frame = self.stream.read()
 
-            # Break if bad or no frame
+            # check for frame if Nonetype
             if frame is None:
                 break
 
-            # Write full size frame
-            self.writer.write(frame)
-
-            # Use reducer to compress frame
+            # {do something with your OpenCV frame here}
+            # reducer frames size if you want more performance otherwise comment this line
             frame = await reducer(frame, percentage=30, interpolation=cv2.INTER_AREA)
 
             # handle JPEG encoding
@@ -90,7 +71,7 @@ class LocalStreamer(threading.Thread):
             )
             await asyncio.sleep(0)
         # safely close video stream
-        stream.stop()
+        self.stream.stop()
 
     def run(self):
         uvicorn.run(self.web(), host="0.0.0.0", port=8000)

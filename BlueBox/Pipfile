@@ -13,6 +13,7 @@ starlette = "*"
 simplejpeg = "*"
 jinja2 = "*"
 pynetworktables = "*"
+pyyaml = "*"
 
 [dev-packages]
 black = "*"
