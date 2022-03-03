@@ -6,7 +6,7 @@ from vidgear.gears import CamGear
 
 # This is a custom class that iterates through frames and records
 class RecordingFrameIterator:
-    def __init__(self, source=2, name="Unnamed"):
+    def __init__(self, source=0, name="Unnamed"):
         self.source = CamGear(source=source)
         self.running = True
 
