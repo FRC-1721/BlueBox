@@ -74,7 +74,7 @@ class LocalCamera(threading.Thread):
         self.stream.stop()
 
     def run(self):
-        uvicorn.run(self.web(), host="0.0.0.0", port=8000)
+        uvicorn.run(self.web(), host="0.0.0.0", port=5801)
 
     def terminate(self):
         self.writer.close()

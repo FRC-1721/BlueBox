@@ -6,7 +6,7 @@ from vidgear.gears import CamGear
 
 # This is a custom class that iterates through frames and records
 class RecordingFrameIterator:
-    def __init__(self, source=0, name="Unnamed"):
+    def __init__(self, source=2, name="Unnamed"):
         self.source = CamGear(source=source)
         self.running = True
 
@@ -24,8 +24,7 @@ class RecordingFrameIterator:
         }
 
         self.writer = WriteGear(
-            output_filename="/var/BlueBox/output%03d.mp4",
-            logging=True,
+            output_filename=f"/var/BlueBox/{name}-%03d.mp4",
             **writeGearOptions,
         )
 
@@ -44,9 +43,10 @@ class RecordingFrameIterator:
                     self.queue.put(frame)
 
     def start(self):
-        self.thread = Thread(target=self.main_iterator)
-        self.thread.daemon = True
-        self.thread.start()
+        if self.thread is None:
+            self.thread = Thread(target=self.main_iterator)
+            self.thread.daemon = True
+            self.thread.start()
         return self
 
     def read(self):
@@ -58,5 +58,6 @@ class RecordingFrameIterator:
     def stop(self):
         self.running = False
         self.source.stop()
+        if not (self.thread is None):
+            self.thread.join()
         self.writer.close()
-        self.thread.join()
