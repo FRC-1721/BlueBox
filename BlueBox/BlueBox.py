@@ -7,7 +7,7 @@ import coloredlogs, logging
 
 from networktables import NetworkTables
 
-from LocalStreamer import LocalStreamer
+from localCamera import LocalCamera
 
 
 class BlueBox:
@@ -31,7 +31,7 @@ class BlueBox:
 
         # Each camera should have its own threaded handler.
         # This is messy, maybe look at python multiprocessing?
-        self.RearFisheyeThread = LocalStreamer(
+        self.RearFisheyeThread = LocalCamera(
             self.const["streams"]["rearfisheye"],
             self.BlueBoxTable,
         )
